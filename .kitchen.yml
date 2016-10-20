@@ -1,0 +1,22 @@
+---
+driver:
+  name: vagrant
+  hostname: localhost
+
+provisioner:
+  name: chef_zero
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: ubuntu-16.04
+  - name: ubuntu-14.04
+
+suites:
+  - name: default
+    run_list:
+      - recipe[openvpn_server_test]
+  - name: delete
+    run_list:
+      - recipe[openvpn_server_test::delete]
