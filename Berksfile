@@ -4,3 +4,5 @@
 source 'https://supermarket.chef.io'
 
 metadata
+
+cookbook 'resource_test', path: 'spec/support/cookbooks/resource_test'

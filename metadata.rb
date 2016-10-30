@@ -14,4 +14,5 @@ issues_url 'https://github.com/socrata-cookbooks/openvpn_server/issues'
 
 chef_version '>= 12.1'
 
-depends 'openvpn', '~> 2.1'
+supports 'ubuntu'
+supports 'debian'
