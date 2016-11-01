@@ -29,13 +29,22 @@ class Chef
     class OpenvpnServerApp < Resource
       default_action :install
 
+      #
+      # Install the OpenVPN package.
+      #
       action :install do
         package 'openvpn'
       end
 
+      #
+      # Upgrade the OpenVPN package.
+      #
       action :upgrade do
         package('openvpn') { action :upgrade }
       end
+
+      # The removal action may be a :purge or a :remove depending on the
+      # platform, so varies by child resource.
     end
   end
 end
