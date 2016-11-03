@@ -6,6 +6,7 @@ require_relative 'spec_helper'
 shared_context 'resources' do
   %i(resource name platform platform_version action).each { |p| let(p) { nil } }
   let(:properties) { {} }
+  let(:multiproperties) { {} }
   let(:runner) do
     ChefSpec::SoloRunner.new(
       step_into: resource, platform: platform, version: platform_version
@@ -17,6 +18,10 @@ shared_context 'resources' do
       properties.each do |k, v|
         next if v.nil?
         node.default['resource_test']['properties'][k] = v
+      end
+      multiproperties.each do |k, v|
+        next if v.nil?
+        node.default['resource_test']['multiproperties'][k] = v
       end
     end
   end
