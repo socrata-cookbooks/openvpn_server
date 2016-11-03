@@ -79,7 +79,7 @@ class OpenvpnServer
           EOH
         ]
         config.sort.to_h.each do |k, v|
-          next if k == :push || !v
+          next if k.to_s == 'push' || !v
           segments << config_segment_for(k, v)
         end
         segments.compact.join("\n")
@@ -95,13 +95,17 @@ class OpenvpnServer
       #     {
       #       push: {
       #         dhcp_option: {
-      #           dns1: 'DNS 1.2.3.4', dns2: 'DNS 1.2.3.5'
+      #           dns0: 'DNS 1.2.3.4',
+      #           dns1: 'DNS 1.2.3.5',
+      #           dns2: false,
+      #           search: 'DOMAIN example.com'
       #         }
       #       }
       #     } ==>
       #     """
       #     push "dhcp-option DNS 1.2.3.4"
       #     push "dhcp-option DNS 1.2.3.5"
+      #     push "dhcp-option DOMAIN example.com"
       #     """
       #
       # @return [String, NilClass] the push commands section of an OVPN config
