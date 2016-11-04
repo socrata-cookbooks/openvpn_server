@@ -21,7 +21,8 @@
 if defined?(ChefSpec)
   {
     openvpn_server_app: %i(install upgrade remove),
-    openvpn_server_config: %i(create delete)
+    openvpn_server_config: %i(create delete),
+    openvpn_server_service: %i(enable disable start stop restart)
   }.each do |matcher, actions|
     ChefSpec.define_matcher(matcher)
 
