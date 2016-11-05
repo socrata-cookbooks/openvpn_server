@@ -8,7 +8,16 @@ describe 'openvpn_server::default' do
   let(:runner) { ChefSpec::SoloRunner.new(platform) }
   let(:chef_run) { runner.converge(described_recipe) }
 
-  it 'converges successfully' do
-    expect(chef_run).to be
+  it 'installs the OpenVPN app' do
+    expect(chef_run).to install_openvpn_server_app('default')
+  end
+
+  it 'creates the OpenVPN config' do
+    expect(chef_run).to create_openvpn_server_config('default')
+  end
+
+  it 'enables and starts the OpenVPN service' do
+    expect(chef_run).to enable_openvpn_server_service('default')
+    expect(chef_run).to start_openvpn_server_service('default')
   end
 end

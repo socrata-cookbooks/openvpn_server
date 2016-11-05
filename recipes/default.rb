@@ -19,3 +19,6 @@
 # limitations under the License.
 #
 
+openvpn_server_app 'default'
+openvpn_server_config 'default'
+openvpn_server_service 'default'
