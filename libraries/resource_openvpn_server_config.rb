@@ -53,51 +53,46 @@ class Chef
       property :config,
                Hash,
                default: lazy { |r|
-                 Mash.new(
-                   dev: 'tun0',
-                   local: r.node['ipaddress'],
-                   proto: 'udp',
-                   port: 1194,
-                   server: '10.8.0.0 255.255.0.0',
+                 Mash.new(dev: 'tun0',
+                          local: r.node['ipaddress'],
+                          proto: 'udp',
+                          port: 1194,
+                          server: '10.8.0.0 255.255.0.0',
 
-                   user: 'nobody',
-                   group: 'nogroup',
+                          user: 'nobody',
+                          group: 'nogroup',
 
-                   auth: 'SHA512',
-                   cipher: 'AES-256-CBC',
-                   script_security: 2,
+                          auth: 'SHA512',
+                          cipher: 'AES-256-CBC',
+                          script_security: 2,
 
-                   keepalive: '10 120',
-                   reneg_sec: 604_800,
+                          keepalive: '10 120',
+                          reneg_sec: 604_800,
 
-                   ca: ::File.join(r.key_path, 'ca.crt'),
-                   cert: ::File.join(r.key_path, 'server.crt'),
-                   key: ::File.join(r.key_path, 'server.key'),
-                   dh: ::File.join(r.key_path, 'dh2048.pem'),
-                   crl_verify: '/etc/openvpn/crl.pem',
-                   up: '/etc/openvpn/server.up.sh',
-                   log: '/var/log/openvpn.log',
+                          ca: ::File.join(r.key_path, 'ca.crt'),
+                          cert: ::File.join(r.key_path, 'server.crt'),
+                          key: ::File.join(r.key_path, 'server.key'),
+                          dh: ::File.join(r.key_path, 'dh2048.pem'),
+                          crl_verify: '/etc/openvpn/crl.pem',
+                          up: '/etc/openvpn/server.up.sh',
+                          log: '/var/log/openvpn.log',
 
-                   tls_auth: ::File.join(r.key_path, 'static.key'),
-                   key_direction: 0,
+                          tls_auth: ::File.join(r.key_path, 'static.key'),
+                          key_direction: 0,
 
-                   client_config_dir: '/etc/openvpn/clients',
-                   ccd_exclusive: true,
+                          client_config_dir: '/etc/openvpn/clients',
+                          ccd_exclusive: true,
 
-                   push: {
-                     explicit_exit_notify: true,
-                     inactive: 900
-                   }
-                 )
+                          push: { explicit_exit_notify: true, inactive: 900 })
                },
                coerce: proc { |val| Mash.new(val) }
 
       #
       # Allow individual properties to be fed in so that they're merged with
       # the default config but don't totally blow it away, e.g.:
-      # 
+      #
       #   openvpn_server_config 'default' do
-      #     dev 'tap'   
+      #     dev 'tap'
       #     auth 'SHA512'
       #     log '/tmp/openvpn.log'
       #     push inactive: 1_800
@@ -114,24 +109,19 @@ class Chef
         raise if !block.nil? || args.length > 1
         case args.length
         when 1
-          case args[0]
-          when Hash
-            config[method_symbol] ||= {}
-            args[0].each do |k, v|
-              case v
-              when Hash
-                config[method_symbol][k] ||= {}
-                config[method_symbol][k].merge!(v)
-              else
-                config[method_symbol][k] = v
-              end
-            end
-          else
-            config[method_symbol] = args[0]
-          end
+          merge!(config, method_symbol, args[0])
         when 0
           config[method_symbol]
         end
+      end
+
+      #
+      # Respond to missing methods.
+      #
+      # (see Object#respond_to_missing?)
+      #
+      def respond_to_missing?(method_symbol, *args, &block)
+        block.nil? && args.length <= 1 && !method_symbol.match(/^to/) || super
       end
 
       #
@@ -148,6 +138,25 @@ class Chef
       #
       action :delete do
         file(new_resource.path) { action :delete }
+      end
+
+      #
+      # Recursively merge a hash argument into a config hash.
+      #
+      # @param hsh [Hash] a config hash
+      # @param key [Hash] the key to deep merge into the config
+      # @param val [*] the value to deep merge into the config
+      #
+      def merge!(hsh, key, val)
+        case val
+        when Hash
+          hsh[key] ||= Mash.new
+          val.each do |k, v|
+            merge!(hsh[key], k, v)
+          end
+        else
+          hsh[key] = val
+        end
       end
     end
   end
