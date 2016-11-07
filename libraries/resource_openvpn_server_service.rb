@@ -38,7 +38,10 @@ class Chef
       #
       Chef::Resource::Service.allowed_actions.each do |a|
         action a do
-          service('openvpn') { action a }
+          service "openvpn - #{a}" do
+            service_name 'openvpn'
+            action a
+          end
         end
       end
     end

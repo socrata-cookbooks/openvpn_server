@@ -30,11 +30,13 @@ shared_context 'resources::openvpn_server_service' do
       end
 
       it 'enables the openvpn service' do
-        expect(chef_run).to enable_service('openvpn')
+        expect(chef_run).to enable_service('openvpn - enable')
+          .with(service_name: 'openvpn')
       end
 
       it 'starts the openvpn service' do
-        expect(chef_run).to start_service('openvpn')
+        expect(chef_run).to start_service('openvpn - start')
+          .with(service_name: 'openvpn')
       end
     end
 
@@ -47,7 +49,8 @@ shared_context 'resources::openvpn_server_service' do
         end
 
         it "#{a}s the openvpn service" do
-          expect(chef_run).to send("#{a}_service", 'openvpn')
+          expect(chef_run).to send("#{a}_service", "openvpn - #{a}")
+            .with(service_name: 'openvpn')
         end
       end
     end
