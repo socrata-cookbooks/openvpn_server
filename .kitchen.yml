@@ -19,6 +19,6 @@ suites:
   - name: default
     run_list:
       - recipe[openvpn_server_test]
-  - name: delete
+  - name: remove
     run_list:
-      - recipe[openvpn_server_test::delete]
+      - recipe[openvpn_server_test::remove]
