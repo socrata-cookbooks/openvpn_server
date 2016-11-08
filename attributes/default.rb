@@ -20,3 +20,4 @@
 #
 
 default['openvpn_server']['app']['version'] = nil
+default['openvpn_server']['config'] = {}

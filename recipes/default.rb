@@ -24,5 +24,9 @@ attrs = node['openvpn_server']
 openvpn_server_app 'default' do
   version attrs['app']['version'] unless attrs['app']['version'].nil?
 end
-openvpn_server_config 'default'
+openvpn_server_config 'default' do
+  attrs['config'].each do |k, v|
+    send(k, v)
+  end
+end
 openvpn_server_service 'default'
