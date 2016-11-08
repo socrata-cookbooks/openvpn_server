@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 #
 # Cookbook Name:: openvpn_server
-# Recipe:: default
+# Attributes:: default
 #
 # Copyright 2016, Socrata, Inc.
 #
@@ -19,10 +19,4 @@
 # limitations under the License.
 #
 
-attrs = node['openvpn_server']
-
-openvpn_server_app 'default' do
-  version attrs['app']['version'] unless attrs['app']['version'].nil?
-end
-openvpn_server_config 'default'
-openvpn_server_service 'default'
+default['openvpn_server']['app']['version'] = nil

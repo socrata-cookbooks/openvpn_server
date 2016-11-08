@@ -30,10 +30,17 @@ class Chef
       default_action :install
 
       #
+      # Let the user opt to install a specific version.
+      #
+      property :version, String
+
+      #
       # Install the OpenVPN package.
       #
       action :install do
-        package 'openvpn'
+        package 'openvpn' do
+          version new_resource.version unless new_resource.version.nil?
+        end
       end
 
       #
