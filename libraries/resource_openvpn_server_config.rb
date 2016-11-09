@@ -128,6 +128,10 @@ class Chef
       # Render a config file using the set config hash and path.
       #
       action :create do
+        directory new_resource.key_path do
+          mode '0700'
+          recursive true
+        end
         file new_resource.path do
           content OpenvpnServer::Helpers::Config.new(new_resource.config).to_s
         end
@@ -137,6 +141,7 @@ class Chef
       # Delete the config file.
       #
       action :delete do
+        directory(new_resource.key_path) { action :delete }
         file(new_resource.path) { action :delete }
       end
 

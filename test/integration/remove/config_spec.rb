@@ -8,6 +8,12 @@ control 'openvpn_server::remove::config' do
   title 'OpenVPN config is deleted'
   desc 'OpenVPN config is deleted'
 
+  describe directory('/etc/openvpn/keys') do
+    it 'does not exist' do
+      expect(subject).to not_exist
+    end
+  end
+
   describe file('/etc/openvpn/server.conf') do
     it 'does not exist' do
       expect(subject).to_not exist

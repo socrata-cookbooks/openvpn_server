@@ -27,6 +27,11 @@ shared_context 'resources::openvpn_server_config' do
         it 'creates an openvpn_server_config resource' do
           expect(chef_run).to create_openvpn_server_config(name)
         end
+
+        it 'creates the key directory' do
+          expect(chef_run).to create_directory(key_path || '/etc/openvpn/keys')
+            .with(mode: '0700', recursive: true)
+        end
       end
 
       context 'all default properties' do
@@ -236,6 +241,10 @@ shared_context 'resources::openvpn_server_config' do
       shared_examples_for 'any property set' do
         it 'creates an openvpn_server_config resource' do
           expect(chef_run).to delete_openvpn_server_config(name)
+        end
+
+        it 'deletes the key directory' do
+          expect(chef_run).to delete_directory(key_path || '/etc/openvpn/keys')
         end
 
         it 'deletes the config file' do

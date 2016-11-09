@@ -43,4 +43,10 @@ control 'openvpn_server::default::config' do
       expect(subject.content).to match(EXPECTED_CONTENT)
     end
   end
+
+  describe directory('/etc/openvpn/keys') do
+    it 'exists' do
+      expect(subject).to exist
+    end
+  end
 end
