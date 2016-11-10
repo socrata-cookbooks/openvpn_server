@@ -32,6 +32,16 @@ shared_context 'resources::openvpn_server_config' do
           expect(chef_run).to create_directory(key_path || '/etc/openvpn/keys')
             .with(mode: '0700', recursive: true)
         end
+
+        it 'creates the up script' do
+          expect(chef_run).to create_file('/etc/openvpn/server.up.sh')
+            .with(content: OpenvpnServer::Helpers::Config::UP_SCRIPT)
+        end
+
+        it 'creates the down script' do
+          expect(chef_run).to create_file('/etc/openvpn/server.down.sh')
+            .with(content: OpenvpnServer::Helpers::Config::DOWN_SCRIPT)
+        end
       end
 
       context 'all default properties' do
@@ -50,6 +60,7 @@ shared_context 'resources::openvpn_server_config' do
             crl-verify /etc/openvpn/crl.pem
             dev tun0
             dh /etc/openvpn/keys/dh2048.pem
+            down /etc/openvpn/server.down.sh
             group nogroup
             keepalive 10 120
             key /etc/openvpn/keys/server.key
@@ -88,6 +99,7 @@ shared_context 'resources::openvpn_server_config' do
             crl-verify /etc/openvpn/crl.pem
             dev tun0
             dh /etc/openvpn/keys/dh2048.pem
+            down /etc/openvpn/server.down.sh
             group nogroup
             keepalive 10 120
             key /etc/openvpn/keys/server.key
@@ -126,6 +138,7 @@ shared_context 'resources::openvpn_server_config' do
             crl-verify /etc/openvpn/crl.pem
             dev tun0
             dh /tmp/keys/dh2048.pem
+            down /etc/openvpn/server.down.sh
             group nogroup
             keepalive 10 120
             key /tmp/keys/server.key
@@ -205,6 +218,7 @@ shared_context 'resources::openvpn_server_config' do
             crl-verify /etc/openvpn/crl.pem
             dev tap
             dh /etc/openvpn/keys/dh2048.pem
+            down /etc/openvpn/server.down.sh
             group nogroup
             keepalive 10 120
             key /etc/openvpn/keys/server.key
@@ -243,12 +257,20 @@ shared_context 'resources::openvpn_server_config' do
           expect(chef_run).to delete_openvpn_server_config(name)
         end
 
-        it 'deletes the key directory' do
-          expect(chef_run).to delete_directory(key_path || '/etc/openvpn/keys')
-        end
-
         it 'deletes the config file' do
           expect(chef_run).to delete_file(path || '/etc/openvpn/server.conf')
+        end
+
+        it 'deletes the down script' do
+          expect(chef_run).to delete_file('/etc/openvpn/server.down.sh')
+        end
+
+        it 'deletes the up script' do
+          expect(chef_run).to delete_file('/etc/openvpn/server.up.sh')
+        end
+
+        it 'deletes the key directory' do
+          expect(chef_run).to delete_directory(key_path || '/etc/openvpn/keys')
         end
       end
 

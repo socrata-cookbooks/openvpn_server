@@ -75,6 +75,7 @@ class Chef
                           dh: ::File.join(r.key_path, 'dh2048.pem'),
                           crl_verify: '/etc/openvpn/crl.pem',
                           up: '/etc/openvpn/server.up.sh',
+                          down: '/etc/openvpn/server.down.sh',
                           log: '/var/log/openvpn.log',
 
                           tls_auth: ::File.join(r.key_path, 'static.key'),
@@ -132,6 +133,14 @@ class Chef
           mode '0700'
           recursive true
         end
+        file '/etc/openvpn/server.up.sh' do
+          mode '0755'
+          content OpenvpnServer::Helpers::Config::UP_SCRIPT
+        end
+        file '/etc/openvpn/server.down.sh' do
+          mode '0755'
+          content OpenvpnServer::Helpers::Config::DOWN_SCRIPT
+        end
         file new_resource.path do
           content OpenvpnServer::Helpers::Config.new(new_resource.config).to_s
         end
@@ -141,8 +150,10 @@ class Chef
       # Delete the config file.
       #
       action :delete do
-        directory(new_resource.key_path) { action :delete }
         file(new_resource.path) { action :delete }
+        directory(new_resource.key_path) { action :delete }
+        file('/etc/openvpn/server.down.sh') { action :delete }
+        file('/etc/openvpn/server.up.sh') { action :delete }
       end
 
       #
