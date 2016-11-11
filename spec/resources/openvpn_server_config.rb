@@ -86,6 +86,8 @@ shared_context 'resources::openvpn_server_config' do
       context 'an overridden path property' do
         let(:path) { '/tmp/ovpn.conf' }
 
+        it_behaves_like 'any property set'
+
         it 'creates the expected config file' do
           expected = <<-EOH.gsub(/^ +/, '')
             # OpenVPN server configuration file.
@@ -125,6 +127,8 @@ shared_context 'resources::openvpn_server_config' do
       context 'an overridden key_path property' do
         let(:key_path) { '/tmp/keys' }
 
+        it_behaves_like 'any property set'
+
         it 'creates the expected config file' do
           expected = <<-EOH.gsub(/^ +/, '')
             # OpenVPN server configuration file.
@@ -163,6 +167,8 @@ shared_context 'resources::openvpn_server_config' do
 
       context 'an overridden config property' do
         let(:config) { { test_param: 'testvalue', another: 'thing' } }
+
+        it_behaves_like 'any property set'
 
         it 'creates the expected config file' do
           expected = <<-EOH.gsub(/^ +/, '')
@@ -204,6 +210,8 @@ shared_context 'resources::openvpn_server_config' do
             }
           }
         end
+
+        it_behaves_like 'any property set'
 
         it 'creates the expected config file' do
           expected = <<-EOH.gsub(/^ +/, '')
@@ -280,6 +288,12 @@ shared_context 'resources::openvpn_server_config' do
 
       context 'an overridden path property' do
         let(:path) { '/tmp/ovpn.conf' }
+
+        it_behaves_like 'any property set'
+      end
+
+      context 'an overridden key_path property' do
+        let(:key_path) { '/tmp/keys' }
 
         it_behaves_like 'any property set'
       end
