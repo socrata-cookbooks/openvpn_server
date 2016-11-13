@@ -10,12 +10,14 @@ Openvpn_server Cookbook
 [codeclimate]: https://codeclimate.com/github/socrata-cookbooks/openvpn_server
 [coveralls]: https://coveralls.io/r/socrata-cookbooks/openvpn_server
 
-TODO: Enter the cookbook description here.
+A Chef cookbook for managing an OpenVPN server.
 
 Requirements
 ============
 
-TODO: Describe cookbook dependencies.
+This cookbook currently requires Chef 12.5+, or Chef 12.x and the
+[compat_resource](https://supermarket.chef.io/cookbooks/compat_resource)
+cookbook.
 
 Usage
 =====
@@ -39,36 +41,77 @@ TODO: Describe any noteworthy attributes.
 Resources
 =========
 
-***openvpn_server***
+***openvpn_server_app***
 
-TODO: Describe each included resource.
+Manages the OpenVPN packages.
 
 Syntax:
 
-    openvpn_server 'my_resource' do
-        attribute1 'value1'
-        action :create
+    openvpn_server_app 'default' do
+      version '1.2.3'
+      action :install
     end
 
 Actions:
 
-| Action  | Description  |
-|---------|--------------|
-| action1 | Do something |
+| Action     | Description                        |
+|------------|------------------------------------|
+| `:install` | Install the OVPN package           |
+| `:upgrade` | Upgrade to the latest OVPN package |
+| `:remove`  | Purge/remove the OVPN package      |
 
-Attributes:
+Properties:
 
-| Attribute  | Default        | Description          |
-|------------|----------------|----------------------|
-| attribute1 | `'some_value'` | Do something         |
-| action     | `:create`      | Action(s) to perform |
+| Property | Default    | Description                                       |
+|----------|------------|---------------------------------------------------|
+| version  | `nil`      | Install a specific version of the OpenVPN package |
+| action   | `:install` | Action(s) to perform                              |
 
-Providers
-=========
+***openvpn_server_config***
 
-TODO: Describe each included provider
+Manages the OpenVPN config files.
 
-***Chef::Provider::SomeProvider***
+Syntax:
+
+    openvpn_server_config 'default' do
+      path '/etc/openvpn/server.conf'
+      key_path '/etc/openvpn/keys'
+      config(proto: 'udp', port: 1194)
+      auth 'SHA512'
+      ccd_exclusive true
+      push(explicit_exit_notify: true)
+      push(inactive: 1800)
+      action :create
+    end
+
+Actions:
+
+| Action    | Description                  |
+|-----------|------------------------------|
+| `:create` | Create the OVPN config files |
+| `:delete` | Delete the OVPN config files |
+
+Properties:
+
+| Property | Default                    | Description                         |
+|----------|----------------------------|-------------------------------------|
+| path     | `/etc/openvpn/server.conf` | Path of the main config file        |
+| key_path | `/etc/openvpn/keys`        | Path of the keys directory          |
+| config   | See note below             | A hash representing the OVPN config |
+| \*       | `nil`                      | Override any specific OVPN setting  |
+
+\* By default, this resource uses a large (hopefully reasonable) configuration
+hash. Individual settings can be overridden by passing them as properties to
+the resource. The entirety of the config can be overridden by passing a
+replacement config property to the resource.
+
+All overrides should be passed to the config resource with underscores where
+there would normally be dashes in an OpenVPN config file, e.g.
+`client_config_dir` instead of `client-config-dir`.
+
+Any property that is an enabled/disabled switch rather than a string or integer
+value can be set by setting a boolean property, e.g. `ccd_exclusive true` would
+translate to `ccd-exclusive` in the generated config file.
 
 Contributing
 ============
