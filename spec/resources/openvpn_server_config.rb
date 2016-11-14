@@ -42,6 +42,14 @@ shared_context 'resources::openvpn_server_config' do
           expect(chef_run).to create_file('/etc/openvpn/server.down.sh')
             .with(content: OpenvpnServer::Helpers::Config::DOWN_SCRIPT)
         end
+
+        it 'creates the up script directory' do
+          expect(chef_run).to create_directory('/etc/openvpn/server.up.d')
+        end
+
+        it 'creates the down script directory' do
+          expect(chef_run).to create_directory('/etc/openvpn/server.down.d')
+        end
       end
 
       context 'all default properties' do
@@ -267,6 +275,14 @@ shared_context 'resources::openvpn_server_config' do
 
         it 'deletes the config file' do
           expect(chef_run).to delete_file(path || '/etc/openvpn/server.conf')
+        end
+
+        it 'deletes the down script directory' do
+          expect(chef_run).to delete_directory('/etc/openvpn/server.down.d')
+        end
+
+        it 'deletes the up script directory' do
+          expect(chef_run).to delete_directory('/etc/openvpn/server.up.d')
         end
 
         it 'deletes the down script' do
