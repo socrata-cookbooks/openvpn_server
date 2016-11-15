@@ -136,11 +136,11 @@ class Chef
         %w(/etc/openvpn/server.up.d /etc/openvpn/server.down.d).each do |d|
           directory d
         end
-        file '/etc/openvpn/server.up.sh' do
+        file new_resource.config['up'] do
           mode '0755'
           content OpenvpnServer::Helpers::Config::UP_SCRIPT
         end
-        file '/etc/openvpn/server.down.sh' do
+        file new_resource.config['down'] do
           mode '0755'
           content OpenvpnServer::Helpers::Config::DOWN_SCRIPT
         end
@@ -157,8 +157,8 @@ class Chef
         %w(/etc/openvpn/server.down.d /etc/openvpn/server.up.d).each do |d|
           directory(d) { action :delete }
         end
-        file('/etc/openvpn/server.down.sh') { action :delete }
-        file('/etc/openvpn/server.up.sh') { action :delete }
+        file(new_resource.config['down']) { action :delete }
+        file(new_resource.config['up']) { action :delete }
         directory(new_resource.key_path) { action :delete }
       end
 
