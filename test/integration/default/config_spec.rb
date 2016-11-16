@@ -15,6 +15,7 @@ EXPECTED_CONTENT = Regexp.new(<<-EOH.gsub(/^ +/, '')).freeze
   crl-verify /etc/openvpn/crl.pem
   dev tun0
   dh /etc/openvpn/keys/dh2048.pem
+  down /etc/openvpn/server.down.sh
   group nogroup
   keepalive 10 120
   key /etc/openvpn/keys/server.key
@@ -38,15 +39,27 @@ control 'openvpn_server::default::config' do
   title 'OpenVPN is configured'
   desc 'OpenVPN is configured'
 
-  describe file('/etc/openvpn/server.conf') do
-    it 'has the expected content' do
-      expect(subject.content).to match(EXPECTED_CONTENT)
+  %w(
+    /etc/openvpn/keys /etc/openvpn/server.up.d /etc/openvpn/server.down.d
+  ).each do |d|
+    describe directory(d) do
+      it 'exists' do
+        expect(subject).to exist
+      end
     end
   end
 
-  describe directory('/etc/openvpn/keys') do
-    it 'exists' do
-      expect(subject).to exist
+  %w(/etc/openvpn/server.up.sh /etc/openvpn/server.down.sh).each do |f|
+    describe file(f) do
+      it 'exists' do
+        expect(subject).to exist
+      end
+    end
+  end
+
+  describe file('/etc/openvpn/server.conf') do
+    it 'has the expected content' do
+      expect(subject.content).to match(EXPECTED_CONTENT)
     end
   end
 end
