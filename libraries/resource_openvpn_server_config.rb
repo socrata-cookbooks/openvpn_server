@@ -133,6 +133,11 @@ class Chef
           mode '0700'
           recursive true
         end
+        execute 'Generate the OpenVPN static key' do
+          command "openvpn --genkey --secret #{new_resource.config['tls_auth']}"
+          creates new_resource.config['tls_auth']
+          sensitive true
+        end
         %w(/etc/openvpn/server.up.d /etc/openvpn/server.down.d).each do |d|
           directory d
         end
@@ -159,6 +164,7 @@ class Chef
         end
         file(new_resource.config['down']) { action :delete }
         file(new_resource.config['up']) { action :delete }
+        file(new_resource.config['tls_auth']) { action :delete }
         directory(new_resource.key_path) { action :delete }
       end
 

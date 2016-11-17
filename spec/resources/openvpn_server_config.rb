@@ -33,6 +33,16 @@ shared_context 'resources::openvpn_server_config' do
             .with(mode: '0700', recursive: true)
         end
 
+        it 'generates the static key' do
+          f = (config && config[:tls_auth]) || \
+              (key_path && "#{key_path}/static.key") || \
+              '/etc/openvpn/keys/static.key'
+          expect(chef_run).to run_execute('Generate the OpenVPN static key')
+            .with(command: "openvpn --genkey --secret #{f}",
+                  creates: f,
+                  sensitive: true)
+        end
+
         it 'creates the up script' do
           f = config && config[:up] || '/etc/openvpn/server.up.sh'
           expect(chef_run).to create_file(f)
@@ -181,7 +191,8 @@ shared_context 'resources::openvpn_server_config' do
             test_param: 'testvalue',
             another: 'thing',
             up: '/tmp/server.up',
-            down: '/tmp/server.down'
+            down: '/tmp/server.down',
+            tls_auth: '/tmp/static.key'
           }
         end
 
@@ -194,6 +205,7 @@ shared_context 'resources::openvpn_server_config' do
             another thing
             down /tmp/server.down
             test-param testvalue
+            tls-auth /tmp/static.key
             up /tmp/server.up
           EOH
           expect(chef_run).to create_file('/etc/openvpn/server.conf')
@@ -302,6 +314,13 @@ shared_context 'resources::openvpn_server_config' do
 
         it 'deletes the up script' do
           expect(chef_run).to delete_file('/etc/openvpn/server.up.sh')
+        end
+
+        it 'deletes the static key' do
+          f = (config && config[:tls_auth]) || \
+              (key_path && "#{key_path}/static.key") || \
+              '/etc/openvpn/keys/static.key'
+          expect(chef_run).to delete_file(f)
         end
 
         it 'deletes the key directory' do
