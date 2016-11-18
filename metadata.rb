@@ -14,6 +14,7 @@ source_url 'https://github.com/socrata-cookbooks/openvpn_server'
 issues_url 'https://github.com/socrata-cookbooks/openvpn_server/issues'
 
 depends 'yum-epel', '~> 1.0'
+depends 'openssl', '~> 6.0'
 
 supports 'ubuntu'
 supports 'debian'
