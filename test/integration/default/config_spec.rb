@@ -1,6 +1,7 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require 'openssl'
 require_relative 'spec_helper'
 
 EXPECTED_CONTENT = Regexp.new(<<-EOH.gsub(/^ +/, '')).freeze
@@ -46,6 +47,25 @@ control 'openvpn_server::default::config' do
       it 'exists' do
         expect(subject).to exist
       end
+    end
+  end
+
+  describe file('/etc/openvpn/keys/static.key') do
+    it 'is a valid key' do
+      expect(subject.content)
+        .to match(/^-----BEGIN OpenVPN Static key V1-----$/)
+    end
+  end
+
+  describe file('/etc/openvpn/keys/dh2048.pem') do
+    it 'is a valid DH key' do
+      expect(OpenSSL::PKey::DH.new(subject.content)).to_not raise_error
+    end
+  end
+
+  describe file('/etc/openvpn/keys/server.key') do
+    it 'is a valid RSA key' do
+      expect(OpenSSL::PKey::RSA.new(subject.content)).to_not raise_error
     end
   end
 

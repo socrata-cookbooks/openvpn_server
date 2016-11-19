@@ -50,6 +50,13 @@ shared_context 'resources::openvpn_server_config' do
           expect(chef_run).to create_dhparam_pem(f)
         end
 
+        it 'generates the server private key' do
+          f = (config && config[:key]) || \
+              (key_path && "#{key_path}/server.key") || \
+              '/etc/openvpn/keys/server.key'
+          expect(chef_run).to create_rsa_key(f)
+        end
+
         it 'creates the up script' do
           f = config && config[:up] || '/etc/openvpn/server.up.sh'
           expect(chef_run).to create_file(f)
@@ -200,7 +207,8 @@ shared_context 'resources::openvpn_server_config' do
             up: '/tmp/server.up',
             down: '/tmp/server.down',
             tls_auth: '/tmp/static.key',
-            dh: '/tmp/dh2048.pem'
+            dh: '/tmp/dh2048.pem',
+            key: '/tmp/server.key'
           }
         end
 
@@ -213,6 +221,7 @@ shared_context 'resources::openvpn_server_config' do
             another thing
             dh /tmp/dh2048.pem
             down /tmp/server.down
+            key /tmp/server.key
             test-param testvalue
             tls-auth /tmp/static.key
             up /tmp/server.up
@@ -323,6 +332,13 @@ shared_context 'resources::openvpn_server_config' do
 
         it 'deletes the up script' do
           expect(chef_run).to delete_file('/etc/openvpn/server.up.sh')
+        end
+
+        it 'deletes the server private key' do
+          f = (config && config[:key]) || \
+              (key_path && "#{key_path}/server.key") || \
+              '/etc/openvpn/keys/server.key'
+          expect(chef_run).to delete_file(f)
         end
 
         it 'deletes the dh pem file' do

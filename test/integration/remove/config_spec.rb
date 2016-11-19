@@ -19,6 +19,9 @@ control 'openvpn_server::remove::config' do
   end
 
   %w(
+    /etc/openvpn/keys/static.key
+    /etc/openvpn/keys/dh2048.pem
+    /etc/openvpn/keys/server.key
     /etc/openvpn/server.up.sh
     /etc/openvpn/server.down.sh
     /etc/openvpn/server.conf

@@ -139,6 +139,7 @@ class Chef
           sensitive true
         end
         openssl_dhparam new_resource.config['dh']
+        openssl_rsa_key new_resource.config['key']
         %w(/etc/openvpn/server.up.d /etc/openvpn/server.down.d).each do |d|
           directory d
         end
@@ -165,6 +166,7 @@ class Chef
         end
         file(new_resource.config['down']) { action :delete }
         file(new_resource.config['up']) { action :delete }
+        file(new_resource.config['key']) { action :delete }
         file(new_resource.config['dh']) { action :delete }
         file(new_resource.config['tls_auth']) { action :delete }
         directory(new_resource.key_path) { action :delete }
