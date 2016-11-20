@@ -37,10 +37,7 @@ shared_context 'resources::openvpn_server_config' do
           f = (config && config[:tls_auth]) || \
               (key_path && "#{key_path}/static.key") || \
               '/etc/openvpn/keys/static.key'
-          expect(chef_run).to run_execute('Generate the OpenVPN static key')
-            .with(command: "openvpn --genkey --secret #{f}",
-                  creates: f,
-                  sensitive: true)
+          expect(chef_run).to create_openvpn_server_static_key(f)
         end
 
         it 'generates the dh pem file' do
@@ -352,7 +349,7 @@ shared_context 'resources::openvpn_server_config' do
           f = (config && config[:tls_auth]) || \
               (key_path && "#{key_path}/static.key") || \
               '/etc/openvpn/keys/static.key'
-          expect(chef_run).to delete_file(f)
+          expect(chef_run).to delete_openvpn_server_static_key(f)
         end
 
         it 'deletes the key directory' do

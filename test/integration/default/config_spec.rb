@@ -50,13 +50,6 @@ control 'openvpn_server::default::config' do
     end
   end
 
-  describe file('/etc/openvpn/keys/static.key') do
-    it 'is a valid key' do
-      expect(subject.content)
-        .to match(/^-----BEGIN OpenVPN Static key V1-----$/)
-    end
-  end
-
   describe file('/etc/openvpn/keys/dh2048.pem') do
     it 'is a valid DH key' do
       expect(OpenSSL::PKey::DH.new(subject.content)).to_not raise_error
@@ -69,7 +62,10 @@ control 'openvpn_server::default::config' do
     end
   end
 
-  %w(/etc/openvpn/server.up.sh /etc/openvpn/server.down.sh).each do |f|
+  %w(
+    /etc/openvpn/server.up.sh
+    /etc/openvpn/server.down.sh
+  ).each do |f|
     describe file(f) do
       it 'exists' do
         expect(subject).to exist
