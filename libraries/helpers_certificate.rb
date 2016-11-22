@@ -1,0 +1,199 @@
+# encoding: utf-8
+# frozen_string_literal: true
+#
+# Cookbook Name:: openvpn_server
+# Library:: helpers_certificate
+#
+# Copyright 2016, Socrata, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+require 'time'
+require 'openssl'
+require_relative 'helpers_base'
+require_relative 'helpers_bn'
+
+module OpenvpnServer
+  module Helpers
+    # A wrapper class for OpenSSL::X509::Certificate that gives it some
+    # methods to be more helpful in an OpenVPN context.
+    #
+    # @author Jonathan Hartman <jonathan.hartman@socrata.com>
+    class Certificate < Base
+      required :request, :root_ca, :root_key, :serial, :expires
+
+      class << self
+        #
+        # Generate a new certificate object based on a pem file.
+        #
+        # @param path [String] the path to a pem file
+        #
+        # @return [OpenvpnClient::Helpers::Certificate] the new certificate
+        #
+        def from_file(path)
+          from_s(File.read(path))
+        end
+
+        #
+        # Generate a new certificate object based on an existing cert string.
+        #
+        # @param cert_body [String] the existing cert
+        #
+        # @return [OpenvpnClient::Helpers::Certificate] the new certificate
+        #
+        def from_s(cert_body)
+          new(OpenSSL::X509::Certificate.new(cert_body))
+        end
+      end
+
+      #
+      # We need to be able to support initializing an object from an existing
+      # certificate in addition to a config hash. Yes, it gets a little weird.
+      #
+      # (see OpenvpnClient::Helpers::Base#initialize)
+      #
+      def initialize(config)
+        case config
+        when OpenSSL::X509::Certificate
+          @certificate = config
+        when String
+          @certificate = OpenSSL::X509::Certificate.new(config)
+        else
+          super
+        end
+      end
+
+      #
+      # Some method names are just aliases to the same methods on the
+      # underlying cert object.
+      #
+      %i(not_before not_after).each do |m|
+        define_method(m) { certificate.send(m) }
+      end
+
+      #
+      # For identifying information held in the certificate subject, make
+      # that info accessible directly as some additional helper methods.
+      #
+      {
+        country: 'C',
+        state: 'ST',
+        city: 'L',
+        organization: 'O',
+        department: 'OU',
+        common_name: 'CN',
+        email: 'emailAddress'
+      }.each do |method, skey|
+        define_method(method) do
+          certificate.subject.to_a.find { |i| i[0] == skey }[1]
+        end
+      end
+
+      #
+      # Convert the underlying OpenSSL::BN object into a Helpers::BN object
+      # that we can stringify how the CA/OpenVPN want.
+      #
+      # @return [OpenvpnClient::Helpers::BN] a BN helper object
+      #
+      def serial
+        BN.new(certificate.serial.to_i)
+      end
+
+      #
+      # Return the number of bits.
+      #
+      # @return [Integer] the number of bits
+      #
+      def bits
+        certificate.to_text.match(/Public-Key: \(([0-9]+) bit\)/)[1].to_i
+      end
+
+      #
+      # Join the cert text and PEM to create a .pem file resembling the ones
+      # easy-rsa creates for OVPN.
+      #
+      # @return [String] a .pem file body, ready to be written to a file
+      #
+      def to_s
+        certificate.to_pem
+      end
+
+      private
+
+      #
+      # Access the underlying certificate object.
+      #
+      # @return [OpenSSL::X509::Certificate] the underlying X509 cert
+      #
+      def certificate
+        @certificate ||= begin
+          c = OpenSSL::X509::Certificate.new
+          c.not_before = Time.now
+          c.version = 2
+          configure!(c)
+          c.sign(root_key, OpenSSL::Digest::SHA256.new)
+          c
+        end
+      end
+
+      #
+      # Perform the base configuration of the certificate.
+      #
+      # @param c [OpenSSL::X509::Certificate] the cert to configure
+      #
+      def configure!(c)
+        c.not_after = expires
+        c.subject = request.subject
+        c.issuer = root_ca.subject
+        c.public_key = request.public_key
+        # We override the serial method above, so need to reference the
+        # instance variable here.
+        c.serial = @serial
+        add_extensions!(c)
+      end
+
+      #
+      # Use the OpenSSL ExtensionFactory to add the appropriate extensions to
+      # an in-progress certificate and make it look as close as possible to a
+      # cert generated by easy-rsa.
+      #
+      # @param c [OpenSSL::X509::Certificate] the cert to extend
+      #
+      def add_extensions!(c)
+        ef = OpenSSL::X509::ExtensionFactory.new
+        ef.subject_certificate = c
+        ef.issuer_certificate = root_ca
+        extension_map.each do |k, v|
+          c.add_extension(ef.create_extension(k, v))
+        end
+      end
+
+      #
+      # A hash mapping of the extensions we add to every certificate.
+      #
+      # @return [Hash] a hash of extension names and values
+      #
+      def extension_map
+        {
+          'basicConstraints' => 'CA:FALSE',
+          'nsComment' => 'Chef Generated Certificate',
+          'subjectKeyIdentifier' => 'hash',
+          'authorityKeyIdentifier' => 'keyid:always,issuer:always',
+          'extendedKeyUsage' => 'clientAuth',
+          'keyUsage' => 'digitalSignature'
+        }
+      end
+    end
+  end
+end
